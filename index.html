@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GTA 5 Interaktive Karte</title>
+
+    <!-- Leaflet.js CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+
+    <!-- Leaflet.js JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+
+    <style>
+        body {
+            display: flex;
+            margin: 0;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+           overflow: hidden;
+        }
+
+        #sidebar {
+            width: 300px;
+            padding: 10px;
+            background-color: #131313;
+            color: white;
+            overflow-y: auto;
+            height: 100vh;
+            overflow: scroll;
+            scrollbar-color: #131313 #131313;
+            scrollbar-width: thin;
+        }
+
+        #map {
+            flex-grow: 1;
+            height: 100%;
+            background-color: #143D6B;
+        }
+
+        .marker-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        .marker-info .delete-btn {
+            color: red;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .marker-info:hover {
+            text-decoration: underline;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        <h2>Marker Liste</h2>
+        <div id="marker-list"></div>
+    </div>
+    <div id="map"></div>
+
+    <script>
+        // Initialisierung der Leaflet-Karte
+        const map = L.map('map').setView([0, 0], 2); // Startansicht mit Zoomstufe 2
+
+        // Hinzufügen des Kartenbildes als TileLayer (Hier verwendest du dein GTA 5 Kartenbild)
+        const mapBounds = [[-85, -180], [85, 180]]; // Standardmäßig Weltkoordinaten
+        const gtaMap = L.imageOverlay('./karte.jpg', mapBounds).addTo(map);
+
+        map.fitBounds(mapBounds);
+
+        const markerListElement = document.getElementById('marker-list');
+        let markers = JSON.parse(localStorage.getItem('markers')) || [];
+
+        // Funktion zum Speichern der Marker in LocalStorage
+        function saveMarkers() {
+            localStorage.setItem('markers', JSON.stringify(markers));
+        }
+
+        // Funktion zum Hinzufügen eines Markers
+        map.on('click', function (e) {
+            const name = prompt('Gib einen Namen für den Marker ein:');
+            const description = prompt('Gib eine Beschreibung ein:');
+
+            if (name) {
+                const markerData = {
+                    name: name,
+                    description: description,
+                    latlng: e.latlng
+                };
+                markers.push(markerData);
+                addMarkerToMapAndList(markerData);
+                saveMarkers();
+            }
+        });
+
+        // Funktion zum Hinzufügen eines Markers zur Karte und zur Liste
+        function addMarkerToMapAndList(markerData) {
+            const marker = L.marker(markerData.latlng).addTo(map);
+            marker.bindPopup(`<strong>${markerData.name}</strong><br>${markerData.description}`);
+
+            const markerInfo = document.createElement('div');
+            markerInfo.classList.add('marker-info');
+            markerInfo.innerHTML = `<span>${markerData.name}</span><span class="delete-btn">X</span>`;
+
+            // Marker löschen
+            markerInfo.querySelector('.delete-btn').addEventListener('click', function (e) {
+                e.stopPropagation();
+                removeMarker(marker, markerData);
+                markerInfo.remove();
+            });
+
+            // Beim Klick auf den Marker in der Liste zoomt die Karte auf den Marker
+            markerInfo.addEventListener('click', () => {
+                map.setView(marker.getLatLng(), 8); // Zoom auf Marker
+                marker.openPopup();
+            });
+
+            markerListElement.appendChild(markerInfo);
+        }
+
+        // Funktion zum Entfernen eines Markers
+        function removeMarker(marker, markerData) {
+            map.removeLayer(marker);
+            markers = markers.filter(m => m !== markerData);
+            saveMarkers();
+        }
+
+        // Funktion zum Laden gespeicherter Marker
+        function loadMarkers() {
+            markers.forEach(markerData => {
+                addMarkerToMapAndList(markerData);
+            });
+        }
+
+        // Marker beim Laden der Seite wieder anzeigen
+        loadMarkers();
+    </script>
+</body>
+</html>
