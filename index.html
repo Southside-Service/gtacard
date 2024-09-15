@@ -70,7 +70,7 @@
 
         // Hinzufügen des Kartenbildes als TileLayer (Hier verwendest du dein GTA 5 Kartenbild)
         const mapBounds = [[-85, -180], [85, 180]]; // Standardmäßig Weltkoordinaten
-        const gtaMap = L.imageOverlay('./karte.jpg', mapBounds).addTo(map);
+        const gtaMap = L.imageOverlay('https://media.discordapp.net/attachments/1275010070907981834/1284951300106354728/karte.jpg?ex=66e87fa7&is=66e72e27&hm=3c2d45f890f15d48b2effcc1be791a2fd9d5f3aecc6699a41f2f4c92466e7e8a&=&format=webp', mapBounds).addTo(map);
 
         map.fitBounds(mapBounds);
 
